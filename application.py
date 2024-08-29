@@ -1,8 +1,17 @@
 from fastapi import FastAPI
 import pyodbc
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins (you can restrict this to specific domains)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Configure the Azure SQL Database connection
 server = 'tcp:sparcpglobaltasksuitserver.database.windows.net'
