@@ -15,7 +15,7 @@ connection_string = f'DRIVER={driver};SERVER={server};DATABASE={database};UID={u
 @app.route('/user', methods=['GET'])
 def get_user():
     try:
-        conn =  pyodbc.connect(connection_string)
+        conn = pyodbc.connect(connection_string)
         cursor = conn.cursor()
         cursor.execute("""
             SELECT UserID, UserName, Password
@@ -23,21 +23,25 @@ def get_user():
         """)
         rows = cursor.fetchall()
 
-        user = []
+        users = []
         for row in rows:
-            user.append({
-                "UserID": row[0],
-                "UserName": row[1],
-                "Password": row[2]
+            users.append({
+                "UserID": row.UserID,
+                "UserName": row.UserName,
+                "Password": row.Password
             })
 
-        conn.close()
-        return jsonify(user)
+        return jsonify(users)
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-# Get Task API
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
 @app.route('/getTask/<int:task_id>', methods=['GET'])
 def get_task(task_id):
     try:
@@ -63,37 +67,46 @@ def get_task(task_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
     finally:
-        if cursor is not None and hasattr(cursor, 'close'):
+        if cursor is not None:
             cursor.close()
-        if conn is not None and hasattr(conn, 'close'):
+        if conn is not None:
             conn.close()
 
 @app.route('/tasks', methods=['GET'])
 def get_tasks():
-    conn = pyodbc.connect(connection_string)
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM Task')
-    rows = cursor.fetchall()
+    try:
+        conn = pyodbc.connect(connection_string)
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM Task')
+        rows = cursor.fetchall()
 
-    tasks = []
-    for row in rows:
-        task = {
-            'TaskID': row.TaskID,
-            'TaskName': row.TaskName,
-            'TaskDesc': row.TaskDesc,
-            'DueDate': row.DueDate.isoformat() if row.DueDate else None,
-            'CreatedDate': row.CreatedDate.isoformat(),
-            'CreatedBy': row.CreatedBy,
-            'AssignedTo': row.AssignedTo,
-            'Status': row.Status
-        }
-        tasks.append(task)
+        tasks = []
+        for row in rows:
+            task = {
+                'TaskID': row.TaskID,
+                'TaskName': row.TaskName,
+                'TaskDesc': row.TaskDesc,
+                'DueDate': row.DueDate.isoformat() if row.DueDate else None,
+                'CreatedDate': row.CreatedDate.isoformat(),
+                'CreatedBy': row.CreatedBy,
+                'AssignedTo': row.AssignedTo,
+                'Status': row.Status
+            }
+            tasks.append(task)
 
-    conn.close()
-    return jsonify(tasks)
+        return jsonify(tasks)
 
-# Create Task API
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
 @app.route('/createTask', methods=['POST'])
 def create_task():
     data = request.json
@@ -131,10 +144,11 @@ def create_task():
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
     finally:
-        if cursor is not None and hasattr(cursor, 'close'):
+        if cursor is not None:
             cursor.close()
-        if conn is not None and hasattr(conn, 'close'):
+        if conn is not None:
             conn.close()
 
 if __name__ == '__main__':
