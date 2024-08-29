@@ -1,7 +1,8 @@
-from flask import Flask, jsonify, request
+from fastapi import FastAPI
 import pyodbc
+import uvicorn
 
-app = Flask(__name__)
+app = FastAPI()
 
 # Configure the Azure SQL Database connection
 server = 'tcp:sparcpglobaltasksuitserver.database.windows.net'
@@ -12,7 +13,7 @@ driver = '{ODBC Driver 17 for SQL Server}'
 
 connection_string = f'DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}'
 
-@app.route('/user', methods=['GET'])
+@app.get('/user')
 def get_user():
     try:
         conn = pyodbc.connect(connection_string)
@@ -31,10 +32,10 @@ def get_user():
                 "Password": row.Password
             })
 
-        return jsonify(users)
+        return users
     
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}
     
     finally:
         if cursor is not None:
@@ -42,8 +43,8 @@ def get_user():
         if conn is not None:
             conn.close()
 
-@app.route('/getTask/<int:task_id>', methods=['GET'])
-def get_task(task_id):
+@app.get('/getTask/{task_id}')
+def get_task(task_id: int):
     try:
         conn = pyodbc.connect(connection_string)
         cursor = conn.cursor()
@@ -61,12 +62,12 @@ def get_task(task_id):
                 'AssignedTo': row.AssignedTo,
                 'Status': row.Status
             }
-            return jsonify(task)
+            return task
         else:
-            return jsonify({"message": "Task not found"}), 404
+            return {"message": "Task not found"}
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}
     
     finally:
         if cursor is not None:
@@ -74,7 +75,7 @@ def get_task(task_id):
         if conn is not None:
             conn.close()
 
-@app.route('/tasks', methods=['GET'])
+@app.get('/tasks')
 def get_tasks():
     try:
         conn = pyodbc.connect(connection_string)
@@ -96,10 +97,10 @@ def get_tasks():
             }
             tasks.append(task)
 
-        return jsonify(tasks)
+        return tasks
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}
     
     finally:
         if cursor is not None:
@@ -107,9 +108,8 @@ def get_tasks():
         if conn is not None:
             conn.close()
 
-@app.route('/createTask', methods=['POST'])
-def create_task():
-    data = request.json
+@app.post('/createTask')
+def create_task(data: dict):
     assigned_to = data.get('AssignedTo')
     
     try:
@@ -121,7 +121,7 @@ def create_task():
         user_exists = cursor.fetchone()[0]
 
         if not user_exists:
-            return jsonify({"error": "AssignedTo user does not exist."}), 400
+            return {"error": "AssignedTo user does not exist."}
 
         # Insert the task if the user exists
         cursor.execute("""
@@ -138,12 +138,12 @@ def create_task():
         ))
         
         conn.commit()
-        return jsonify({"message": "Task created successfully."}), 201
+        return {"message": "Task created successfully."}
 
     except pyodbc.IntegrityError as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}
     
     finally:
         if cursor is not None:
@@ -152,4 +152,6 @@ def create_task():
             conn.close()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Run the application without the 'reload' option
+    #uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app) 		
