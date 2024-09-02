@@ -2,6 +2,8 @@ from fastapi import FastAPI
 import pyodbc
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+import requests
+import json
 
 app = FastAPI()
 # Add CORS middleware
