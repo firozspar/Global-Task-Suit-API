@@ -21,13 +21,12 @@ password = 'Spar@123'
 driver = '{ODBC Driver 17 for SQL Server}'
 
 connection_string = f'DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}'
-conn = pyodbc.connect(connection_string)
-cursor = conn.cursor()
-    
+
 @app.get('/user')
 def get_user():
     try:
-        
+        conn = pyodbc.connect(connection_string)
+        cursor = conn.cursor()    
         cursor.execute("""
             SELECT UserID, UserName, Password
             FROM [dbo].[User]
