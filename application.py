@@ -21,12 +21,13 @@ password = 'Spar@123'
 driver = '{ODBC Driver 17 for SQL Server}'
 
 connection_string = f'DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}'
-
+conn = pyodbc.connect(connection_string)
+cursor = conn.cursor()
+    
 @app.get('/user')
 def get_user():
     try:
-        conn = pyodbc.connect(connection_string)
-        cursor = conn.cursor()
+        
         cursor.execute("""
             SELECT UserID, UserName, Password
             FROM [dbo].[User]
@@ -147,6 +148,11 @@ def create_task(data: dict):
         ))
         
         conn.commit()
+        to = assigned_to
+        subject = 'A Task' + data.get('TaskName') + 'has been assigned to you'
+        body = 'A Task' + data.get('TaskName') + 'has been assigned to you'
+        def callLogic(to, subject, body):
+            pass
         return {"message": "Task created successfully."}
 
     except pyodbc.IntegrityError as e:
