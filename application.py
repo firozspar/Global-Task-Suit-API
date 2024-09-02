@@ -174,7 +174,7 @@ def create_task(data: dict):
         conn.commit()
         to = assigned_to
         subject = f"A Task '{data.get('TaskName')}' has been assigned to you"
-        body = f"A Task '{data.get('TaskName')}' has been assigned to you"
+        body = f"A Task with Task Name - '{data.get('TaskName')}' and Task Description - '{data.get('TaskDesc')}'has been assigned to you by '{data.get('CreatedBy')}' with due date '{data.get('DueDate')}'. \n\n Regards \n Spar Team "
         notification_response = call_logic_app(to, subject, body)
         return {"message": "Task created successfully.", "notification": notification_response}
 
