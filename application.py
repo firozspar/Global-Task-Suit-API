@@ -189,6 +189,77 @@ def create_task(data: dict):
         if conn is not None:
             conn.close()
 
+@app.get('/tasks/assignedTo/{assigned_to}')
+def get_tasks_by_assigned_to(assigned_to: str):
+    try:
+        conn = pyodbc.connect(connection_string)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Task WHERE AssignedTo = ?", (assigned_to,))
+        rows = cursor.fetchall()
+
+        if not rows:
+            return {"message": "No tasks found for the given AssignedTo user"}
+
+        tasks = []
+        for row in rows:
+            task = {
+                'TaskID': row.TaskID,
+                'TaskName': row.TaskName,
+                'TaskDesc': row.TaskDesc,
+                'DueDate': row.DueDate.isoformat() if row.DueDate else None,
+                'CreatedDate': row.CreatedDate.isoformat(),
+                'CreatedBy': row.CreatedBy,
+                'AssignedTo': row.AssignedTo,
+                'Status': row.Status
+            }
+            tasks.append(task)
+
+        return tasks
+
+    except Exception as e:
+        return {"error": str(e)}
+    
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
+@app.get('/tasks/createdBy/{created_by}')
+def get_tasks_by_created_by(created_by: str):
+    try:
+        conn = pyodbc.connect(connection_string)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Task WHERE CreatedBy = ?", (created_by,))
+        rows = cursor.fetchall()
+
+        if not rows:
+            return {"message": "No tasks found for the given CreatedBy user"}
+
+        tasks = []
+        for row in rows:
+            task = {
+                'TaskID': row.TaskID,
+                'TaskName': row.TaskName,
+                'TaskDesc': row.TaskDesc,
+                'DueDate': row.DueDate.isoformat() if row.DueDate else None,
+                'CreatedDate': row.CreatedDate.isoformat(),
+                'CreatedBy': row.CreatedBy,
+                'AssignedTo': row.AssignedTo,
+                'Status': row.Status
+            }
+            tasks.append(task)
+
+        return tasks
+
+    except Exception as e:
+        return {"error": str(e)}
+    
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
 if __name__ == '__main__':
     # Run the application without the 'reload' option
     #uvicorn.run(app, host="127.0.0.1", port=8000)
