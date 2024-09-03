@@ -260,6 +260,54 @@ def get_tasks_by_created_by(created_by: str):
             cursor.close()
         if conn is not None:
             conn.close()
+
+@app.put('/updateTask/{task_id}')
+def update_task(task_id: int, data: dict):
+    try:
+        conn = pyodbc.connect(connection_string)
+        cursor = conn.cursor()
+
+        # Check if the task exists
+        cursor.execute("SELECT COUNT(1) FROM dbo.Task WHERE TaskID = ?", (task_id,))
+        task_exists = cursor.fetchone()[0]
+
+        if not task_exists:
+            return {"error": "Task not found."}
+
+        # Extract values from the input data
+        task_name = data.get('TaskName')
+        task_desc = data.get('TaskDesc')
+        due_date = data.get('DueDate')
+        created_date = data.get('CreatedDate')
+        created_by = data.get('CreatedBy')
+        assigned_to = data.get('AssignedTo')
+        status = data.get('Status')
+
+        # Update the task with the provided values
+        cursor.execute("""
+            UPDATE dbo.Task
+            SET TaskName = ?, TaskDesc = ?, DueDate = ?, CreatedDate = ?, CreatedBy = ?, AssignedTo = ?, Status = ?
+            WHERE TaskID = ?
+        """, (
+            task_name, task_desc, due_date, created_date, created_by, assigned_to, status, task_id
+        ))
+        
+        conn.commit()
+
+        return {"message": "Task updated successfully."}
+
+    except pyodbc.IntegrityError as e:
+        return {"error": "Database integrity error: " + str(e)}
+    except Exception as e:
+        return {"error": "An error occurred: " + str(e)}
+    
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
+
 if __name__ == '__main__':
     # Run the application without the 'reload' option
     #uvicorn.run(app, host="127.0.0.1", port=8000)
