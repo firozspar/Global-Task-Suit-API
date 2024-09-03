@@ -278,18 +278,18 @@ def update_task(task_id: int, data: dict):
         task_name = data.get('TaskName')
         task_desc = data.get('TaskDesc')
         due_date = data.get('DueDate')
-        created_date = data.get('CreatedDate')
-        created_by = data.get('CreatedBy')
+       # created_date = data.get('CreatedDate')
+        # created_by = data.get('CreatedBy')
         assigned_to = data.get('AssignedTo')
         status = data.get('Status')
 
         # Update the task with the provided values
         cursor.execute("""
             UPDATE dbo.Task
-            SET TaskName = ?, TaskDesc = ?, DueDate = ?, CreatedDate = ?, CreatedBy = ?, AssignedTo = ?, Status = ?
+            SET TaskName = ?, TaskDesc = ?, DueDate = ?, AssignedTo = ?, Status = ?
             WHERE TaskID = ?
         """, (
-            task_name, task_desc, due_date, created_date, created_by, assigned_to, status, task_id
+            task_name, task_desc, due_date, assigned_to, status, task_id
         ))
         
         conn.commit()
