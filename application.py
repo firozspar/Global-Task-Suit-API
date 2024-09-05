@@ -109,38 +109,6 @@ def get_task(task_id: int):
         if conn is not None:
             conn.close()
 
-@app.get('/tasks')
-def get_tasks():
-    try:
-        conn = pyodbc.connect(connection_string)
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM Task')
-        rows = cursor.fetchall()
-
-        tasks = []
-        for row in rows:
-            task = {
-                'TaskID': row.TaskID,
-                'TaskName': row.TaskName,
-                'TaskDesc': row.TaskDesc,
-                'DueDate': row.DueDate.isoformat() if row.DueDate else None,
-                'CreatedDate': row.CreatedDate.isoformat(),
-                'CreatedBy': row.CreatedBy,
-                'AssignedTo': row.AssignedTo,
-                'Status': row.Status
-            }
-            tasks.append(task)
-
-        return tasks
-
-    except Exception as e:
-        return {"error": str(e)}
-    
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()
 
 @app.post('/createTask')
 def create_task(data: dict):
